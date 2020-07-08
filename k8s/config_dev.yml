@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: 38s
 data:
-  URL: "https://api-dev.38s.dev/oneid/"
+  URL: "https://api-dev.38s.dev/38s/"
   #GIN_MODE: release
   #================#
   NEWRELIC_APP_NAME: "IAM"

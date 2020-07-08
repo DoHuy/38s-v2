@@ -1,0 +1,124 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: $CI_PROJECT_NAME
+  namespace: $NAMESPACE
+spec:
+  replicas: 1
+  progressDeadlineSeconds: 120
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # how many pods we can add at a time
+      maxUnavailable: 0  # maxUnavailable define how many pods can be unavailable # during the rolling update
+  selector:
+    matchLabels:
+      name: $CI_PROJECT_NAME
+  template:
+    metadata:
+      name: $CI_PROJECT_NAME
+      labels:
+        name: $CI_PROJECT_NAME
+    spec:
+      containers:
+      - name: $CI_PROJECT_NAME
+        image: asia.gcr.io/38s-devops/$CI_PROJECT_NAME:$IMAGE_TAG
+        imagePullPolicy: IfNotPresent
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/bash", "-c", "sleep 15"]
+        livenessProbe:
+          httpGet:
+            path: /38s/health
+            port: 3000
+            httpHeaders:
+              - name: X-Device-ID
+                value: HealthCheck
+          initialDelaySeconds: 15
+          timeoutSeconds: 15
+        readinessProbe:
+          httpGet:
+            path: /38s/health
+            port: 3000
+            httpHeaders:
+              - name: X-Device-ID
+                value: HealthCheck
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        ports:
+          - name: http
+            containerPort: 3000
+        envFrom:
+          - configMapRef:
+              name: $CI_PROJECT_NAME
+          - secretRef:
+              name: $CI_PROJECT_NAME
+      restartPolicy: Always
+      imagePullSecrets:
+      - name: docker-image-pull-secret
+---
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: ${CI_PROJECT_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  scaleTargetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: ${CI_PROJECT_NAME}
+  minReplicas: 1
+  maxReplicas: 2
+  targetCPUUtilizationPercentage: 80
+---
+apiVersion: flagger.app/v1alpha3
+kind: Canary
+metadata:
+  name: ${CI_PROJECT_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  targetRef:
+    apiVersion: extensions/v1beta1
+    kind: Deployment
+    name: ${CI_PROJECT_NAME}
+  progressDeadlineSeconds: 120
+  autoscalerRef:
+    apiVersion: autoscaling/v2beta1
+    kind: HorizontalPodAutoscaler
+    name: ${CI_PROJECT_NAME}
+  service:
+    match:
+      - uri:
+          prefix: ${SERVICE_PATH}
+    rewrite:
+      uri: /
+    port: 80
+    targetPort: 3000
+    gateways:
+      - internal-gateway.istio-system.svc.cluster.local
+    hosts:
+      - $HOST
+      - $HOST_INTERNAL
+    trafficPolicy:
+      tls:
+        # use ISTIO_MUTUAL when mTLS is enabled
+        mode: DISABLE
+    corsPolicy:
+      allowOrigin:
+        - "*"
+      allowMethods:
+        - POST
+        - GET
+        - PUT
+        - OPTIONS
+      allowCredentials: false
+      allowHeaders:
+        - "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization,X-Api-Key,TimezoneOffset"
+      maxAge: "24h"
+  analysis:
+    interval: 30s
+    threshold: 10
+    maxWeight: 99
+    stepWeight: 5
+

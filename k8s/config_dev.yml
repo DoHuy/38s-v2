@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: 38s
+data:
+  URL: "https://api-dev.38s.dev/oneid/"
+  #GIN_MODE: release
+  #================#
+  NEWRELIC_APP_NAME: "IAM"
+  NEWRELIC_LICENSE: "p  "
+  NEWRELIC_ENABLED: "false"
+  LISTEN_ADDRESS: "0.0.0.0:8888"
+
+  REDIS_HOST: "redis-common.dev"
+  REDIS_PORT: "6379"
+  REDIS_DB: "5"
+  REDIS_PASSWORD: ""
+  REDIS_SESSION_SECRET: "secret"
+  MYSQL_CONNECTION_STRING: "xxxxxxxxxxxxx"
+  #DIR
+  VIEW_DIR_TEMPLATE: "/app/template/"
+  VIEW_DIR_STATIC: "/app/static"
+  VIEW_DIR_DOMAIN_PATH: "/38s/"
+

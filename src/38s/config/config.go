@@ -26,7 +26,7 @@ type Config struct {
 	}
 	RedisConfig struct {
 		DB            int    `envconfig:"REDIS_DB" default:"0"`
-		Host          string `envconfig:"REDIS_HOST" default:"127.0.0.1"`
+		Host          string `envconfig:"REDIS_HOST" default:"192.168.1.8"`
 		Port          string `envconfig:"REDIS_PORT" default:"6379"`
 		Password      string `envconfig:"REDIS_PASSWORD" default:""`
 		SessionSecret string `envconfig:"REDIS_SESSION_SECRET" required:"false"`

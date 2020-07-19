@@ -360,7 +360,7 @@ h1, h2, h3, h4, h5, h6 {
 --------------------------------------------------------------*/
 #hero {
   width: 100%;
-  height: 70vh;
+  /*height: 70vh;*/
   margin-top: 70px;
 }
 
@@ -407,9 +407,6 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 991px) {
-  #hero {
-    height: 100vh;
-  }
   #hero .animated {
     -webkit-animation: none;
     animation: none;
